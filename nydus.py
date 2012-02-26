@@ -90,7 +90,22 @@ def route_to_app(url, loc):
             path += 'index.html'
         return static_file(path, root=loc)
 
+def route_to_templates(url, loc):
+    @route('%s' % url)
+    @route('%s:path#.+#' % url)
+    def server_static(path='/'):
+        if path.endswith('/'):
+            files = os.listdir(loc+'/'+path)
+            files = filter(lambda x: os.path.isfile(loc+'/'+path+x), files)
+            files = filter(lambda x: not x.endswith('~'), files)
+            return json.dumps(files)
+        else:
+            return static_file(path, root=loc)
+
 route_to_app('/app/', 'html/')
+route_to_app('/genie/', '/Users/graham/DropboxLocal/garden/genie/')
+route_to_app('/clients/', 'clients/')
+route_to_templates('/template/', 'html/template/')
 
 def nydus_run(host='127.0.0.1', port=8080, reloader=True, config_d={}):
     import bottle

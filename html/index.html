@@ -1,1 +1,33 @@
-this is a test
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+        <title>testing</title>
+        
+        <script type="text/javascript" charset="utf-8" src='/app/js/jquery.js'> </script>
+        <script type="text/javascript" charset="utf-8" src='/genie/genie.js'> </script>
+        <script type="text/javascript" charset="utf-8" src='/genie/ut.js'> </script>
+        <script type="text/javascript" charset="utf-8" src='/clients/nydus.js'> </script>
+        
+        <script type="text/javascript" charset="utf-8">        
+          var env = null;
+
+          $(document).ready(function() {
+            env = new genie.Environment();
+            env.load_template_dir('/template/', function() { doit(); });
+          });
+
+          function doit() {
+            $('#target').html( env.render('index', {'name':'Graham'}) );
+          };
+
+
+        </script>
+
+    </head>
+    <body>
+
+      <div id='target'></div>
+      <input type='button' onclick='doit();' value='woot'>
+
+    </body>
+</html>
