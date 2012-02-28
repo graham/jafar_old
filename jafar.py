@@ -108,6 +108,11 @@ if __name__ == '__main__':
         c.incr()
         return old_value
 
+    @api(path='/hello')
+    def hello(name):
+        "this function will say hello to you"
+        return "hello %s" % name
+
     if 'serve' in sys.argv:
         jafar_run()
     
