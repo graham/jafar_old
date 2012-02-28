@@ -6,6 +6,7 @@ except:
 import config
 import validators
 import auth
+import sys
 
 from bottle import request, response, error, run, route, static_file
 
@@ -16,43 +17,9 @@ def error404(error):
     return 'There is no API call at this URL.'
 
 @route('/_api_list/')
-def nice_api():
-    version = request.GET.get('version', None)
-    
-    d = []
-    for j in default_api.api_calls:
-        method, path, data = j
+def l():
+    return default_api.nice_api()
 
-        v = {}
-        for i in data['validators']:
-            v[i] = (data['validators'][i].func_name, data['validators'][i].func_doc)
-        
-        if version != None:
-            if data['api_version'] == version:
-                d.append( (method, path, {
-                    'path':data['path'],
-                    'func_name':data['func_name'],
-                    'func_doc':data['func_doc'],
-                    'required_args':data['required_args'],
-                    'optional_args':data['optional_args'],
-                    'validators':v,
-                    'api_version':data['api_version'],
-                    'method':method
-                }) )
-        else:
-            d.append( (method, path, {
-                'path':data['path'],
-                'func_name':data['func_name'],
-                'func_doc':data['func_doc'],
-                'required_args':data['required_args'],
-                'optional_args':data['optional_args'],
-                'validators':v,
-                'api_version':data['api_version'],
-                'method':method
-            }) )
-            
-    return json.dumps(d)
-    
 import base64
 import sys
 import os
@@ -112,13 +79,13 @@ def jafar_run(host='127.0.0.1', port=8080, reloader=True, config_d={}):
     bottle.debug(True)
     run(host=host, port=port, reloader=reloader)
 
-data = {'value':0}
+data = {'value': 0}
 
 if __name__ == '__main__':
     api = default_api.api
     @api(path='/incr')
     def incr():
-        data['value'] += 1
+        data['value'] += 2
         return data['value']
 
     @api(path='/decr')
@@ -130,4 +97,17 @@ if __name__ == '__main__':
     def asdf(name, age):
         return "Hello %s, %s" % (name, age)
 
-    jafar_run()
+    @api(path='/view')
+    def view():
+        return data['value']
+
+    @api(path='/incr1')
+    def incr1():
+        c = default_api.build_client()
+        old_value = c.view()
+        c.incr()
+        return old_value
+
+    if 'serve' in sys.argv:
+        jafar_run()
+    

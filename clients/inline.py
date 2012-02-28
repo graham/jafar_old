@@ -8,19 +8,14 @@ import urllib
 import functools
 import types
 
-class JafarClient(object):
-    def __init__(self, server, version=0):
-        self._host = server
-        self._version = version
-        self._token = None
-        self._server = httplib.HTTP(server)
+class JafarLocalClient(object):
+    def __init__(self, api_obj):
         self._calls = set()
         self._proxies = set()
         self._data = ''
+        self._api_obj = api_obj
         self._reflect()
-    
-    def _login(self, uid, password):
-        self._token = self.auth.login(uid=uid, password=password)
+        self._version = '0'
     
     def _help(self, key, version=None):
         if version == None:
@@ -33,39 +28,13 @@ class JafarClient(object):
         return "<JafarClient available_api_calls=%r proxies=%r>" % (list(self._calls), list(self._proxies))
 
     def _get(self, url, data={}):
-        return self._fetch('GET', url, gdata=data)
-        
-    def _fetch(self, method, url, gdata={}, data={}):
-        if self._token:
-            if method == 'GET':
-                gdata.update({'_auth_token':self._token})
-            else:
-                data.update({'_auth_token':self._token})
-        
-        if gdata:
-            url = url + "?" + urllib.urlencode(gdata)
-            
-        self._server.putrequest(method, url)
-        self._server.putheader("Host", self._host)
-        raw = urllib.urlencode(data)
-        self._server.putheader('Content-Length', str(len(raw)))
-        
-        self._server.endheaders()
-        self._server.send(raw)
-        reply = self._server.getreply()
-        d = self._server.getfile().read()
-        try:
-            d = json.loads(d)
-        except:
-            pass
-        return reply[0], d
-    
-    def _handle(self, result):
-        if result[0] == 200:
-            return result[1]
-        else:
-            raise JafarException( 0, str(result) )
-    
+        for method, path, details in self._api_obj.api_calls:
+            path = '/' + path.strip()
+            url = url.strip()
+            if path == url:
+                return details['func'](**data)
+        return None
+
     def _reflect(self, inner_data=None):
         for i in self._calls:
             delattr(self, i)
@@ -75,8 +44,10 @@ class JafarClient(object):
         if inner_data:
             code, data = 200, inner_data
         else:
-            code, data = self._get('/_api_list/', {'version':self._version})
-        
+            code, data = 200, self._api_obj.nice_api()
+
+        data = json.loads(data)
+
         if code == 200:
             self._data = data
             for method, key, value in data:
@@ -84,10 +55,10 @@ class JafarClient(object):
                 if not p:
                     p = '_'
 
-                url = '/%s/%s' % (self._version, value['path'].lstrip('/'))
+                url = '/%s/%s' % ('0', value['path'].lstrip('/'))
                 def w(url2=url):
                     def inner_call(**kwargs):
-                        return self._handle(self._get(url2, kwargs))
+                        return self._get(url2, kwargs)
                     return inner_call
 
                 c = w()
@@ -140,9 +111,5 @@ class JafarProxy(object):
         return self._api_call(*args, **kwargs)
 
 if __name__ == '__main__':
-    import sys
-    if '-gae' in sys.argv:
-        x = JafarClient('jitsu.appspot.com')
-    else:
-        x = JafarClient('localhost:8080')
+    x = JafarLocalClient()
 

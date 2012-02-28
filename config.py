@@ -21,6 +21,51 @@ class JafarAPI(object):
         self.user_class = JafarUserFile
         self.session_class = JafarSessionFile
         self.api_calls = []
+        self.broute = route
+
+    def build_client(self):
+        from clients.inline import JafarLocalClient
+        return JafarLocalClient(self)
+
+    def nice_api(self):
+        try:
+            version = request.GET.get('version', None)
+        except:
+            version = None
+
+        d = []
+        for j in self.api_calls:
+            method, path, data = j
+
+            v = {}
+            for i in data['validators']:
+                v[i] = (data['validators'][i].func_name, data['validators'][i].func_doc)
+
+            if version != None:
+                if data['api_version'] == version:
+                    d.append( (method, path, {
+                        'path':data['path'],
+                        'func_name':data['func_name'],
+                        'func_doc':data['func_doc'],
+                        'required_args':data['required_args'],
+                        'optional_args':data['optional_args'],
+                        'validators':v,
+                        'api_version':data['api_version'],
+                        'method':method
+                    }) )
+            else:
+                d.append( (method, path, {
+                    'path':data['path'],
+                    'func_name':data['func_name'],
+                    'func_doc':data['func_doc'],
+                    'required_args':data['required_args'],
+                    'optional_args':data['optional_args'],
+                    'validators':v,
+                    'api_version':data['api_version'],
+                    'method':method
+                }) )
+
+        return json.dumps(d)
 
     def get_file(self, fname):
         if fname in self.f_template_cache:
@@ -111,7 +156,6 @@ class JafarAPI(object):
                     response.statuscode = 401
                     return json.dumps( {'error':(401, 'Authorization Required')} )
         
-                print session.user_id
                 if session.user_id:
                     session.user = self.user_class(session.user_id)
 
