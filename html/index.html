@@ -6,20 +6,28 @@
         <script type="text/javascript" charset="utf-8" src='/app/js/jquery.js'> </script>
         <script type="text/javascript" charset="utf-8" src='/genie/genie.js'> </script>
         <script type="text/javascript" charset="utf-8" src='/genie/ut.js'> </script>
-        <script type="text/javascript" charset="utf-8" src='/clients/nydus.js'> </script>
+        <script type="text/javascript" charset="utf-8" src='/clients/jafar.js'> </script>
         
         <script type="text/javascript" charset="utf-8">        
           var env = null;
+	  var api = [];
 
           $(document).ready(function() {
             env = new genie.Environment();
-            env.load_template_dir('/template/', function() { doit(); });
+	    env.load_template_dir('/template/nice/', get_data);
           });
+	  
+	  function get_data() {
+	    $.get('/_api_list/', function(data) {
+	      api = JSON.parse(data);
+	      start_render();
+	    });
+	  }
 
-          function doit() {
-            $('#target').html( env.render('index', {'name':'Graham'}) );
-          };
-
+	  function start_render() {
+	    console.log('start render');
+            $('#target').html( env.render('index', {api:api}) );
+	  }
 
         </script>
 
@@ -27,7 +35,6 @@
     <body>
 
       <div id='target'></div>
-      <input type='button' onclick='doit();' value='woot'>
 
     </body>
 </html>

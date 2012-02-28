@@ -11,15 +11,15 @@ import types
 from bottle import request, response, error, run, route, static_file
 config = {'debug':2}
 
-from auth import NydusSessionFile, NydusUserFile
-from errors import NydusException, NydusRaw
+from auth import JafarSessionFile, JafarUserFile
+from errors import JafarException, JafarRaw
 
-class NydusAPI(object):
+class JafarAPI(object):
     def __init__(self):
         self.f_template_cache = {}
         self.live_version = '0'
-        self.user_class = NydusUserFile
-        self.session_class = NydusSessionFile
+        self.user_class = JafarUserFile
+        self.session_class = JafarSessionFile
         self.api_calls = []
 
     def get_file(self, fname):
@@ -80,6 +80,7 @@ class NydusAPI(object):
 
             inner = self.wrap(wrapped_function, **d)
             f = route('/%s/%s' % (d['version'], d['path'].lstrip('/')), method=d['method'])(inner)
+
             if d['version'] == self.live_version:
                 route(d['path'], method=d['method'])(inner)
             return f
@@ -138,7 +139,7 @@ class NydusAPI(object):
 
                 try:
                     d[key] = value(d[key])
-                except NydusException, e:
+                except JafarException, e:
                     malformed[key] = value.func_name
                     docs.append( (key, e.args) )
 
@@ -166,9 +167,9 @@ class NydusAPI(object):
                 else:
                     d['session'] = session
                     return json.dumps(wrapped_function(*a, **d))
-            except NydusException, e:
+            except JafarException, e:
                 return json.dumps({'error':e.args})
-            except NydusRaw, nr:
+            except JafarRaw, nr:
                 return nr.args[0]
         return inner
         

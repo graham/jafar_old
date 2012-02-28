@@ -1,5 +1,5 @@
-class NydusException(Exception):
+class JafarException(Exception):
     pass 
 
-class NydusRaw(Exception):
+class JafarRaw(Exception):
     pass

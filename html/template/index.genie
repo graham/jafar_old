@@ -1,5 +1,0 @@
-Hello world, my name is << name >>.
-
-<% for i in [1,2,3,4,5] %>
-   << partial("listitem", {"num":i}) >>
-<% end %>

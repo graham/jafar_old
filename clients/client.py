@@ -8,7 +8,7 @@ import urllib
 import functools
 import types
 
-class NydusClient(object):
+class JafarClient(object):
     def __init__(self, server, version=0):
         self._host = server
         self._version = version
@@ -30,7 +30,7 @@ class NydusClient(object):
             print self._data[new_key]
         
     def __repr__(self):
-        return "<NydusClient available_api_calls=%r proxies=%r>" % (list(self._calls), list(self._proxies))
+        return "<JafarClient available_api_calls=%r proxies=%r>" % (list(self._calls), list(self._proxies))
 
     def _get(self, url, data={}):
         return self._fetch('GET', url, gdata=data)
@@ -64,7 +64,7 @@ class NydusClient(object):
         if result[0] == 200:
             return result[1]
         else:
-            raise NydusException( 0, str(result) )
+            raise JafarException( 0, str(result) )
     
     def _reflect(self):
         for i in self._calls:
@@ -98,7 +98,7 @@ class NydusClient(object):
                 for i in l[:-1]:
                     test = getattr(cur, i, None)
                     if test == None:
-                        np = NydusProxy(self)
+                        np = JafarProxy(self)
                         test = np
                         cur._proxies.add(i)
                         setattr(cur, i, np)
@@ -107,7 +107,7 @@ class NydusClient(object):
 
                 if type(cur) == types.FunctionType:
                     name = cur.func_name
-                    np = NydusProxy(self)
+                    np = JafarProxy(self)
                     np._api_call = cur
                     cur = np
                     setattr(parent, name, np)
@@ -117,7 +117,7 @@ class NydusClient(object):
                 cur._calls.add(l[-1])
 
                 
-class NydusProxy(object):
+class JafarProxy(object):
     def __init__(self, client):
         self.client = client
         self._api_call = None
@@ -126,9 +126,9 @@ class NydusProxy(object):
         
     def __repr__(self):
         if self._api_call:
-            return "<NydusProxy call=%s available_api_calls=%r proxies=%r>" % (str(self._api_call.func_name), list(self._calls), list(self._proxies))
+            return "<JafarProxy call=%s available_api_calls=%r proxies=%r>" % (str(self._api_call.func_name), list(self._calls), list(self._proxies))
         else:
-            return "<NydusProxy available_api_calls=%r proxies=%r>" % (list(self._calls), list(self._proxies))
+            return "<JafarProxy available_api_calls=%r proxies=%r>" % (list(self._calls), list(self._proxies))
             
     def _get(*args, **kwargs):
         return self.client._get(*args, **kwargs)
@@ -139,7 +139,7 @@ class NydusProxy(object):
 if __name__ == '__main__':
     import sys
     if '-gae' in sys.argv:
-        x = NydusClient('jitsu.appspot.com')
+        x = JafarClient('jitsu.appspot.com')
     else:
-        x = NydusClient('localhost:8080')
+        x = JafarClient('localhost:8080')
 

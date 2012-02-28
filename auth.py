@@ -9,7 +9,7 @@ import time
 
 from bottle import response, request
     
-class NydusUser(object):
+class JafarUser(object):
     def __init__(self, uid=None):
         self.uid = uid
         self.password = None
@@ -64,7 +64,7 @@ def get_session_key():
     except:
         return None
 
-class NydusSession(object):
+class JafarSession(object):
     def __init__(self, session_key=None):
         self.key = session_key
         self.user = None
@@ -92,11 +92,11 @@ class NydusSession(object):
     def exists(self):
         return False
 
-class NydusUserFile(NydusUser):
+class JafarUserFile(JafarUser):
     def create(self):
         k = '/tmp/users/' + self.uid
         if os.path.exists(k):
-            raise NydusException( 100, "User Already Exists" )
+            raise JafarException( 100, "User Already Exists" )
         f = open(k, 'w')
         d = {}
         d.update( {'uid':self.uid, 'password':self.password, 'groups':self.groups, 'data':self.data} )
@@ -137,9 +137,9 @@ class NydusUserFile(NydusUser):
             
     @classmethod
     def lookup_by_uid(cls, uid):
-        return NydusUserFile(uid)
+        return JafarUserFile(uid)
 
-class NydusSessionFile(NydusSession):
+class JafarSessionFile(JafarSession):
     def create(self):
         import uuid
         if self.key == None:
@@ -186,7 +186,7 @@ class NydusSessionFile(NydusSession):
 
 ##### easy auth ######
 def use_easy_auth():
-    from nydus import api
+    from jafar import api
 
     @api(path='/auth/cookie', explicit_pass_in=True)
     def create_auth_cookie(_api_object):
@@ -256,7 +256,7 @@ def use_easy_auth():
                 response.set_cookie(key='_auth_token', value=id, expires=3600*24, path='/')
             return id
         else:
-            raise NydusException( 0, "Authorization Failed.")
+            raise JafarException( 0, "Authorization Failed.")
         
     @api(path='/auth/sset', auth=True, explicit_pass_in=True)
     def session_set(_api_object, session, **kwargs):

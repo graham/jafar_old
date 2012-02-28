@@ -3,7 +3,7 @@ def is_int(num):
     try:
         return int(num)
     except:
-        raise NydusException( "This attribute must be a valid integer, used: %r" % num)
+        raise JafarException( "This attribute must be a valid integer, used: %r" % num)
 
 def is_even(num):
     """This value should be an even number"""
@@ -11,5 +11,5 @@ def is_even(num):
     if i % 2 == 0:
         return True
     else:
-        raise NydusException( "This attribute must be an even number, used: %r" % num)
+        raise JafarException( "This attribute must be an even number, used: %r" % num)
 
