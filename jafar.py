@@ -83,8 +83,9 @@ data = {'value': 0}
 
 if __name__ == '__main__':
     api = default_api.api
-    @api(path='/incr')
-    def incr():
+    @api(path='/incr', required=['name'])
+    def incr(name):
+        "this function does cool shit. you should pass in name"
         data['value'] += 2
         return data['value']
 
@@ -112,6 +113,10 @@ if __name__ == '__main__':
     def hello(name):
         "this function will say hello to you"
         return "hello %s" % name
+
+    @api(path='/test/greg')
+    def greg():
+        return "hi greg"
 
     if 'serve' in sys.argv:
         jafar_run()
