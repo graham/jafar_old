@@ -1,4 +1,5 @@
 from errors import JafarException
+import json
 
 def is_int(num):
     """This value should be an integer."""
