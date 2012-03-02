@@ -1,3 +1,5 @@
+from errors import JafarException
+
 def is_int(num):
     """This value should be an integer."""
     try:
@@ -13,3 +15,8 @@ def is_even(num):
     else:
         raise JafarException( "This attribute must be an even number, used: %r" % num)
 
+def is_json(data):
+    try:
+        return json.loads(data.strip())
+    except:
+        raise JafarException( "Invalid JSON data." )

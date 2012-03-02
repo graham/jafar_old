@@ -7,6 +7,14 @@ import httplib
 import urllib
 import functools
 import types
+from errors import JafarException
+
+non_json_types = [
+    int,
+    str,
+    unicode,
+    float
+]
 
 class JafarClient(object):
     def __init__(self, server, version=0):
@@ -33,7 +41,15 @@ class JafarClient(object):
         return "<JafarClient available_api_calls=%r proxies=%r>" % (list(self._calls), list(self._proxies))
 
     def _get(self, url, data={}):
-        return self._fetch('GET', url, gdata=data)
+        def jsonify_if_needed(value):
+            if type(value) in non_json_types:
+                return value
+            else:
+                return json.dumps(value)
+        ndata = {}
+        for i in data:
+            ndata[i] = jsonify_if_needed(data[i])
+        return self._fetch('GET', url, gdata=ndata)
         
     def _fetch(self, method, url, gdata={}, data={}):
         if self._token:
