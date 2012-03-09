@@ -3,7 +3,7 @@ try:
 except:
     import simplejson as json
 
-import httplib
+import httplib2
 import urllib
 import functools
 import types
@@ -21,7 +21,7 @@ class JafarClient(object):
         self._host = server
         self._version = version
         self._token = None
-        self._server = httplib.HTTP(server)
+        self._server = httplib2.Http()
         self._calls = set()
         self._proxies = set()
         self._data = ''
@@ -40,7 +40,7 @@ class JafarClient(object):
     def __repr__(self):
         return "<JafarClient available_api_calls=%r proxies=%r>" % (list(self._calls), list(self._proxies))
 
-    def _get(self, url, data={}):
+    def _get(self, method, url, data={}):
         def jsonify_if_needed(value):
             if type(value) in non_json_types:
                 return value
@@ -49,37 +49,42 @@ class JafarClient(object):
         ndata = {}
         for i in data:
             ndata[i] = jsonify_if_needed(data[i])
-        return self._fetch('GET', url, gdata=ndata)
+
+        if method == 'GET':
+            return self._fetch(method, url, gdata=ndata)
+        elif method == 'POST':
+            return self._fetch(method, url, data=ndata)
         
     def _fetch(self, method, url, gdata={}, data={}):
-        if self._token:
-            if method == 'GET':
-                gdata.update({'_auth_token':self._token})
-            else:
-                data.update({'_auth_token':self._token})
+        #if self._token:
+        #    if method == 'GET':
+        #        gdata.update({'_auth_token':self._token})
+        #    else:
+        #        data.update({'_auth_token':self._token})
         
         if gdata:
             url = url + "?" + urllib.urlencode(gdata)
-            
-        self._server.putrequest(method, url)
-        self._server.putheader("Host", self._host)
+
         raw = urllib.urlencode(data)
-        self._server.putheader('Content-Length', str(len(raw)))
-        
-        self._server.endheaders()
-        self._server.send(raw)
-        reply = self._server.getreply()
-        d = self._server.getfile().read()
+
+        resp, content = self._server.request('http://' + self._host + url, method, body=raw, headers={'Host':self._host})
+
+        d = content
+        status = int(resp['status'])
+
         try:
             d = json.loads(d)
         except:
             pass
-        return reply[0], d
+        return status, d
     
     def _handle(self, result):
         if result[0] == 200:
             return result[1]
         else:
+            print '\n' * 2
+            print result[1]
+            print '\n' * 2
             raise JafarException( 0, str(result) )
     
     def _reflect(self, inner_data=None):
@@ -91,8 +96,8 @@ class JafarClient(object):
         if inner_data:
             code, data = 200, inner_data
         else:
-            code, data = self._get('/_api_list/', {'version':self._version})
-        
+            code, data = self._get('GET', '/_api_list/', {'version':self._version})
+
         if code == 200:
             self._data = data
             for method, key, value in data:
@@ -101,12 +106,12 @@ class JafarClient(object):
                     p = '_'
 
                 url = '/%s/%s' % (self._version, value['path'].lstrip('/'))
-                def w(url2=url):
+                def w(url2, method2):
                     def inner_call(**kwargs):
-                        return self._handle(self._get(url2, kwargs))
+                        return self._handle(self._get(method2, url2, kwargs))
                     return inner_call
 
-                c = w()
+                c = w(url, method)
                 c.func_doc = str(value['func_doc']) + "\nRequired Args: " + str(value['required_args']) + "\nOptional Args:" + str(value['optional_args'])
 
                 l = p.split('/')

@@ -14,7 +14,7 @@ default_api = config.JafarAPI()
     
 @error(404)
 def error404(error):
-    return 'There is no API call at this URL.'
+    return json.dumps(['error', 'There is no API call at this URL.'])
 
 @route('/_api_list/')
 def l():
@@ -124,3 +124,4 @@ if __name__ == '__main__':
     if 'client' in sys.argv:
         from clients.client import JafarClient
         c = JafarClient('127.0.0.1:8080')
+        print c.ticket.view(id=1)

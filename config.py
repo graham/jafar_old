@@ -5,6 +5,7 @@ except:
 
 import httplib
 import urllib
+import urlparse
 import functools
 import types
 
@@ -106,7 +107,9 @@ class JafarAPI(object):
         return '\n'.join(d)
 
     def api(self, **outkw):
-        d = dict(path='/', auth=None, required=[], optional={}, validate={}, version=None, method='GET', errors={}, returns=None, explicit_pass_in=False)
+        d = dict(path='/', auth=None, required=[], optional={}, 
+                 validate={}, version=None, method='GET', 
+                 errors={}, returns=None, explicit_pass_in=False)
         d.update(outkw)
         if d['version'] == None:
             d['version'] = self.live_version
@@ -134,7 +137,17 @@ class JafarAPI(object):
             return f
         return wrapper
 
-    def wrap(self, wrapped_function, path='/', auth=None, required=[], optional={}, validate={}, version=None, method='GET', errors={}, returns=None, explicit_pass_in=False):
+    def wrap(self, wrapped_function, path='/', auth=None, required=[], optional={}, 
+             validate={}, version=None, method='GET', errors={}, returns=None, 
+             explicit_pass_in=False, pre_call=None, post_call=None):
+        if pre_call == None:
+            pre_call = []
+        if post_call == None:
+            post_call = []
+
+        dropin_pre_call = pre_call
+        dropin_post_call = post_call
+
         def inner(*args, **kwargs):
             missing = {}
             malformed = {}
@@ -143,8 +156,18 @@ class JafarAPI(object):
 
             d = {}
             d.update(optional)
-            d.update(request.POST)
-            d.update(request.GET)
+            d.update(request.forms)
+            
+            body = request.body.read()
+
+            q = {}
+            if body:
+                try:
+                    q = dict(urlparse.parse_qsl(body))
+                except:
+                    q = dict(body=body)
+
+            d.update(q)
 
             for i in required:
                 if i not in d:
@@ -152,7 +175,6 @@ class JafarAPI(object):
 
             for key in validate:
                 value = validate[key]
-
                 try:
                     d[key] = value(d[key])
                 except JafarException, e:
@@ -172,11 +194,11 @@ class JafarAPI(object):
 
             #return wrapped_function(instance, user=None, **d)
             try:
-                for i in self.pre_call:
-                    i(a, d, wrapped_function)
+                for i in self.pre_call + dropin_pre_call:
+                    i(path, a, d, wrapped_function)
                 result = json.dumps(wrapped_function(*a, **d))
-                for i in self.post_call:
-                    i(result, wrapped_function)
+                for i in dropin_post_call + self.post_call:
+                    i(path, result, wrapped_function)
                 return result
             except JafarException, e:
                 return json.dumps({'error':e.args})
