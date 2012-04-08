@@ -98,21 +98,34 @@ class JafarClient(object):
         else:
             code, data = self._get('GET', '/_api_list/', {'version':self._version})
 
+        dd = []
+        keys = data[0]
+        for i in data[1:]:
+            kv = {}
+            for k, v in zip(keys, i):
+                kv[k] = v
+            dd.append(kv)
+
+        data = dd
+
         if code == 200:
             self._data = data
-            for method, key, value in data:
+            for values in data:
+                method = values['method']
+                key = values['fullpath']
+
                 p = key.split('/', 1)[1].strip('/')
                 if not p:
                     p = '_'
 
-                url = '/%s/%s' % (self._version, value['path'].lstrip('/'))
+                url = '/%s/%s' % (self._version, values['path'].lstrip('/'))
                 def w(url2, method2):
                     def inner_call(**kwargs):
                         return self._handle(self._get(method2, url2, kwargs))
                     return inner_call
 
                 c = w(url, method)
-                c.func_doc = str(value['func_doc']) + "\nRequired Args: " + str(value['required_args']) + "\nOptional Args:" + str(value['optional_args'])
+                c.func_doc = str(values['func_doc']) + "\nRequired Args: " + str(values['required_args']) + "\nOptional Args:" + str(values['optional_args'])
 
                 l = p.split('/')
                 c.func_name = str(l[-1])

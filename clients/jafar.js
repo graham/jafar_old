@@ -27,7 +27,7 @@ var build_jafar_client = function(cb_build) {
             }
 
             var d = {
-                url:details['path'],
+                url:'/' + details['fullpath'],
                 type:details['method'],
                 success: function(data) {
                     if (cb) {
@@ -56,12 +56,24 @@ var build_jafar_client = function(cb_build) {
 	var d = JSON.parse(data);
         var path_list = [];
 
-	for(var index in d) {
-	    var method = d[index][0];
-	    var path = d[index][1];
-	    var details = d[index][2];
+        var dd = [];
+        var thekeys = d[0];
+        var thedata = d.slice(1);
+        for(var index in thedata) {
+            var kv = {};
+            for(var ki in thekeys) {
+                kv[thekeys[ki]] = thedata[index][ki];
+            }
+            dd.push(kv);
+        }
 
-            path_list.push(path);
+        d = dd;
+
+	for(var index in d) {
+	    var details = d[index];
+            console.log(details);
+               
+            path_list.push(d[index]['fullpath']);
 
 	    var chunks = details['path'].slice(1);
 	    var results = genie.dig_set(the_client, chunks, call_url(details), {'def':function() { return new a_proxy(); }});
