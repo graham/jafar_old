@@ -31,12 +31,23 @@ class Daemon:
     Usage: subclass the Daemon class and override the run() method
     """
     def __init__(self, pidfile, stdin=None, stdout=None, stderr=None, proctitle=None):
+        pidfile = pidfile.replace('/', '-')
         self.stdin = stdin or '/dev/null'
         self.stdout = stdout or '/tmp/pydaemons/' + pidfile + ".stdout"
         self.stderr = stderr or '/tmp/pydaemons/' + pidfile + ".stderr"
-        self.pidfile = '/tmp/pydaemons/' + pidfile
+        self.pidfile = '/tmp/pydaemons/' + pidfile + ".pid"
         self.running = 1
         self.proctitle = proctitle
+        self.attr = {}
+
+    def set_data(self, attr):
+        self.attr = attr
+
+    def status(self):
+        if os.path.exists(self.pidfile):
+            return pid_exists(int(open(self.pidfile).read().strip()))
+        else:
+            return False
     
     def daemonize(self):
         """
@@ -54,9 +65,9 @@ class Daemon:
             sys.exit(1)
     
         # decouple from parent environment
-        os.chdir("/") 
-        os.setsid() 
-        os.umask(0) 
+        #os.chdir("/") 
+        #os.setsid() 
+        #os.umask(700)
     
         # do second fork
         try: 
@@ -110,12 +121,13 @@ class Daemon:
         
         # Start the daemon
         self.daemonize()
-        self.run()
+        self._run()
 
     def stop(self):
         """
         Stop the daemon
         """
+        self.log("stopping")
         # Get the pid from the pidfile
         try:
             pf = file(self.pidfile,'r')
@@ -143,6 +155,9 @@ class Daemon:
                 print str(err)
                 sys.exit(1)
 
+    def log(self, message):
+        print '%s: %s' % (time.asctime(), message)
+
     def restart(self):
         """
         Restart the daemon
@@ -155,3 +170,53 @@ class Daemon:
         You should override this method when you subclass Daemon. It will be called after the process has been
         daemonized by start() or restart().
         """
+        pass
+
+    def _run(self):
+        self.log("starting")
+        self.pre_work()
+        try:
+            self.run()
+        except Exception, e:
+            import traceback
+            traceback.print_exc()
+            self.on_error(e)
+        self.post_work()
+        self.stop()
+
+    def pre_work(self):
+        pass
+    def post_work(self):
+        pass
+    def on_error(self, error):
+        pass
+
+
+class DaemonWrapper(object):
+    def __init__(self):
+        self.script = sys.argv[1]
+
+    def handle(self):
+        import sys
+        d = Daemon('daemon-' + self.script)
+        s = self.script
+        def myrun():
+            execfile(s)
+        d.run = myrun
+
+        print 'Currently running: ', d.status()
+        
+        if sys.argv[2] == 'start':
+            d.start()
+        elif sys.argv[2] == 'stop':
+            d.stop()
+        elif sys.argv[2] == 'restart':
+            d.restart()
+        elif sys.argv[2] == 'status':
+            pass
+        else:
+            print 'unknown command', sys.argv[2]
+
+if __name__ == '__main__':
+    x = DaemonWrapper()
+    x.handle()

@@ -12,21 +12,21 @@ import types
 from bottle import request, response, error, run, route, static_file
 config = {'debug':2}
 
-from auth import JafarSessionFile, JafarUserFile
 from errors import JafarException, JafarRaw
 
 class JafarAPI(object):
     def __init__(self):
         self.f_template_cache = {}
         self.live_version = '0'
-        self.user_class = JafarUserFile
-        self.session_class = JafarSessionFile
         self.api_calls = []
         self.broute = route
 
         self.pre_call = []
         self.post_call = []
         self.api = self.build_wrapper(version=None)
+
+    def can_key_access(self, key):
+        return True
 
     def build_client(self):
         from clients.inline import JafarLocalClient

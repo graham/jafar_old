@@ -13,6 +13,7 @@ import sys
 import os
 
 from bottle import request, response, error, run, route, static_file
+import bottle
 
 def wrap_object(root, obj, methods, **topkwargs):
     for i in methods:
@@ -53,30 +54,21 @@ def init_base():
     def l():
         return jafar.default_api.nice_api()
 
-    def get_data_page(name):
-        for i in os.listdir('html'):
-            check = i.split('.')[0]
-            if check == name:
-                return open('html/' + i).read()
-        return ''
-
     @route('/favicon.ico')
     def favicon():
-        return get_data_page('favicon')
+        return ''
     
     @route('/_api')
     def api_view():
-        return get_data_page('index')
-
-    @route('/_data/:path')
-    def server_static_data(path):
-        return get_data_page(path)
+        return 'bye'
 
     jafar.default_api = config.JafarAPI()
     return jafar.default_api
     
-def jafar_run(host='127.0.0.1', port=8080, reloader=True, config_d={}):
+def jafar_run(host='127.0.0.1', port=8080, config_d={}):
     import bottle
-    bottle.debug(True)
-    run(host=host, port=port, reloader=reloader)
+    run(host=host, port=port, reloader=False)
 
+def jafar_dev(host='127.0.0.1', port=8080, reloader=True, config_d={}):
+    import bottle
+    run(host=host, port=port, reloader=reloader)

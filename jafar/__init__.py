@@ -1,3 +1,5 @@
+from gevent import monkey; monkey.patch_all()
+
 from bottle import run
 default_api = None
 
