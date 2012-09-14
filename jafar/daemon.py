@@ -2,6 +2,7 @@
 
 import os, errno
 import sys, os, time, atexit
+import signal
 from signal import SIGTERM 
 try:
     import setproctitle
@@ -39,6 +40,19 @@ class Daemon:
         self.running = 1
         self.proctitle = proctitle
         self.attr = {}
+        
+        signal.signal(signal.SIGUSR1, self.handle_user_1)
+        signal.signal(signal.SIGUSR2, self.handle_user_2)
+
+    def soft_restart(self):
+        self.delpid()
+        self.start()
+        
+    def handle_user_1(self, *args, **kwargs):
+        self.soft_restart()
+
+    def handle_user_2(self, *args, **kwargs):
+        self.soft_restart()
 
     def set_data(self, attr):
         self.attr = attr
@@ -110,6 +124,7 @@ class Daemon:
             pf.close()
         except IOError:
             pid = None
+            print 'not running yet...'
     
         if pid:
             if pid_exists(pid):
@@ -148,12 +163,7 @@ class Daemon:
                 time.sleep(0.1)
         except OSError, err:
             err = str(err)
-            if err.find("No such process") > 0:
-                if os.path.exists(self.pidfile):
-                    os.remove(self.pidfile)
-            else:
-                print str(err)
-                sys.exit(1)
+            sys.exit(1)
 
     def log(self, message):
         print '%s: %s' % (time.asctime(), message)
@@ -194,7 +204,7 @@ class Daemon:
 
 class DaemonWrapper(object):
     def __init__(self):
-        self.script = sys.argv[1]
+        self.script = ' '.join(sys.argv[1:-1])
 
     def handle(self):
         import sys
@@ -204,16 +214,17 @@ class DaemonWrapper(object):
             execfile(s)
         d.run = myrun
 
-        print 'Currently running: ', d.status()
-        
         if sys.argv[2] == 'start':
             d.start()
         elif sys.argv[2] == 'stop':
             d.stop()
         elif sys.argv[2] == 'restart':
             d.restart()
-        elif sys.argv[2] == 'status':
-            pass
+        elif sys.argv[2] == 'reload':
+            pid = int(open(d.pidfile).read().strip())
+            os.kill(pid, signal.SIGUSR1)
+        elif sys.argv[2] == 'status' or sys.argv[2] == 'stat':
+            print 'Currently running: ', d.status()
         else:
             print 'unknown command', sys.argv[2]
 

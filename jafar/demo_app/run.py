@@ -4,7 +4,7 @@ except:
     import simplejson as json
 
 import jafar
-import jafar.config
+import jafar.layer
 import jafar.validators
 import jafar.auth
 import sys

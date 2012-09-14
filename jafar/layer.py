@@ -25,9 +25,6 @@ class JafarAPI(object):
         self.post_call = []
         self.api = self.build_wrapper(version=None)
 
-    def can_key_access(self, key):
-        return True
-
     def build_client(self):
         from clients.inline import JafarLocalClient
         return JafarLocalClient(self)
