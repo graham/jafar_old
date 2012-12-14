@@ -46,8 +46,6 @@ class JafarLocalClient(object):
         else:
             code, data = 200, self._api_obj.nice_api()
 
-        data = json.loads(data)
-
         if code == 200:
             self._data = data
             for method, key, value in data:

@@ -5,7 +5,6 @@ except:
 
 import layer
 import validators
-import auth
 import sys
 
 import base64
@@ -45,14 +44,20 @@ def init_base():
     import jafar
     if jafar.default_api:
         return jafar.default_api
+    jafar.default_api = layer.JafarAPI()
     
     @error(404)
     def error404(error):
         return json.dumps(['error', 'There is no API call at this URL.'])
 
-    @route('/_api_list/')
-    def l():
-        return jafar.default_api.nice_api()
+    @jafar.default_api.raw(path='/_api_list/')
+    def l(nice=None, *args, **kwargs):
+        i = jafar.default_api.nice_api()
+        response.content_type = 'text/plain'
+        if nice:
+            return '\n'.join([str(ii) for ii in i])
+        else:
+            return json.dumps(i)
 
     @route('/favicon.ico')
     def favicon():
@@ -62,7 +67,6 @@ def init_base():
     def api_view():
         return 'bye'
 
-    jafar.default_api = layer.JafarAPI()
     return jafar.default_api
     
 def jafar_run(host='127.0.0.1', port=8080, config_d={}):

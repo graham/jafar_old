@@ -24,6 +24,7 @@ class JafarAPI(object):
         self.pre_call = []
         self.post_call = []
         self.api = self.build_wrapper(version=None)
+        self.raw = self.build_wrapper(raw=True)
 
     def build_client(self):
         from clients.inline import JafarLocalClient
@@ -84,8 +85,7 @@ class JafarAPI(object):
         for i in d:
             newd.append([i[k] for k in keys])
         
-        response.content_type = 'text/plain'
-        return json.dumps(newd)
+        return newd
 
     def get_file(self, fname):
         if fname in self.f_template_cache:
@@ -158,7 +158,7 @@ class JafarAPI(object):
 
     def wrap(self, wrapped_function, path='/', auth=None, required=[], optional={}, 
              validate={}, version=None, method='GET', errors={}, returns=None, 
-             explicit_pass_in=False, pre_call=None, post_call=None):
+             explicit_pass_in=False, pre_call=None, post_call=None, raw=None):
         if pre_call == None:
             pre_call = []
         if post_call == None:
@@ -216,7 +216,14 @@ class JafarAPI(object):
             try:
                 for i in self.pre_call + dropin_pre_call:
                     i(path, a, d, wrapped_function)
-                result = json.dumps(wrapped_function(*a, **d))
+
+                temp_result = wrapped_function(*a, **d)
+
+                if raw is None:
+                    result = json.dumps(temp_result)
+                else:
+                    result = temp_result
+
                 for i in dropin_post_call + self.post_call:
                     i(path, result, wrapped_function)
                 return result
@@ -229,7 +236,7 @@ class JafarAPI(object):
     def page(self, template, dump=None, **outkw):
         if dump == None:
             dump = 'templates/dump.html'
-        d = dict(path='/', auth=None, required=[], optional={}, validate={}, version=None, method='GET', errors={}, returns=None, explicit_pass_in=False)
+        d = dict(path='/', auth=None, required=[], optional={}, validate={}, version=None, method='GET', errors={}, returns=None, explicit_pass_in=False, raw=True)
         d.update(outkw)
         if d['version'] == None:
             d['version'] = self.live_version
@@ -253,12 +260,7 @@ class JafarAPI(object):
 
             def wrap_template(*args, **kwargs):
                 d = inner(*args, **kwargs)
-                t = self.get_file(template)
-                try:
-                    tt = (self.get_file(dump) % json.dumps(d))
-                except:
-                    tt = ''
-                return t + tt
+                return self.get_file(template) % d
 
             f = route('/%s' % (d['path'].lstrip('/')), method=d['method'])(wrap_template)
             return f
