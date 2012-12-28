@@ -40,7 +40,7 @@ def route_to_templates(url, loc):
         else:
             return static_file(path, root=loc)
 
-def init_base():
+def init_base(easy_mode=False):
     import jafar
     if jafar.default_api:
         return jafar.default_api
@@ -67,6 +67,16 @@ def init_base():
     def api_view():
         return 'bye'
 
+    ## if easy mode lets make it ... easy.
+    if easy_mode:
+        for i in ('templates', 'pages', 'static'):
+            try:
+                os.mkdir(i)
+            except:
+                pass
+        route_to_app('/static/', 'static/')
+        route_to_app('/templates/', 'templates/')
+
     return jafar.default_api
     
 def jafar_run(host='127.0.0.1', port=8080, config_d={}):
@@ -76,3 +86,4 @@ def jafar_run(host='127.0.0.1', port=8080, config_d={}):
 def jafar_dev(host='127.0.0.1', port=8080, reloader=True, config_d={}):
     import bottle
     run(host=host, port=port, reloader=reloader)
+

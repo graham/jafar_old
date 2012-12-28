@@ -96,6 +96,32 @@ var build_jafar_client = function(cb_build, cached_raw) {
             return "[JafarClient - " + path_list.length + " api calls]";
         };
         the_client.__path_list = path_list;
+
+        the_client.load_static = function(url, cb) {
+            var settings = {};
+            var d = {
+                url:'/' + url,
+                type:'GET',
+                success: function(data) {
+                    if (cb) {
+                        cb(data);
+                    }
+                }
+            }
+            
+	    if (Object.keys(settings).length != 0) {
+                d['data'] = serialize(settings);
+	    }
+
+            if (cb == undefined) {
+                d['async'] = false;
+                var response = $.ajax(d);
+                return response.responseText;
+            } else {
+                return $.ajax(d);
+            }
+        };
+
 	return the_client;
     };
 
