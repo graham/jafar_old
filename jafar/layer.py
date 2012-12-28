@@ -233,7 +233,7 @@ class JafarAPI(object):
                 return nr.args[0]
         return inner
         
-    def page(self, template, dump=None, **outkw):
+    def page(self, template, dump=None, base=None, **outkw):
         if dump == None:
             dump = 'templates/dump.html'
         d = dict(path='/', auth=None, required=[], optional={}, validate={}, version=None, method='GET', errors={}, returns=None, explicit_pass_in=False, raw=True)
@@ -259,8 +259,18 @@ class JafarAPI(object):
             inner = self.wrap(wrapped_function, **d)
 
             def wrap_template(*args, **kwargs):
+                import jafar
+
                 d = inner(*args, **kwargs)
-                return self.get_file(template) % d
+                temp = self.get_file(template)
+                
+                if base:
+                    outkw['content'] = temp % d
+                    outkw.update(jafar.cached_data)
+                    base_render = self.get_file(base) % outkw
+                    return base_render
+                else:
+                    return temp % d
 
             f = route('/%s' % (d['path'].lstrip('/')), method=d['method'])(wrap_template)
             return f
