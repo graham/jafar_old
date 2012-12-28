@@ -24,3 +24,9 @@ import urlparse
 ## helpful things for your app.
 def get_host():
     return urlparse.urlparse(request.url).netloc
+
+def report_error(message, url, linenumber):
+    print '*' * 40
+    print 'Error on page %s at %s' % (url, linenumber)
+    print ' %s ' % message
+    print '*' * 40

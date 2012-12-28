@@ -67,6 +67,10 @@ def init_base(easy_mode=False):
     def api_view():
         return 'bye'
 
+    @jafar.default_api.api(path='/_report_error')
+    def report_error(message=None, url=None, linenumber=None):
+        jafar.report_error(message=message, url=url, linenumber=linenumber)
+
     ## if easy mode lets make it ... easy.
     if easy_mode:
         for i in ('templates', 'pages', 'static'):
