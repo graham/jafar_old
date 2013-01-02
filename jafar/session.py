@@ -6,7 +6,7 @@ import uuid
 import jafar
 
 class JafarSessionSimpleFS(object):
-    path = os.environ('JAFAR_SESSION_DIR') if 'JAFAR_SESSION_DIR' in os.environ else '/tmp/'
+    path = os.environ['JAFAR_SESSION_DIR'] if 'JAFAR_SESSION_DIR' in os.environ else '/tmp/'
 
     def __init__(self, key, data=None):
         self.key = key
