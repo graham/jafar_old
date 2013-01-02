@@ -91,3 +91,6 @@ def jafar_dev(host='127.0.0.1', port=8080, reloader=True, config_d={}):
     import bottle
     run(host=host, port=port, reloader=reloader)
 
+def jafar_paste(host='127.0.0.1', port=8080, reloader=True):
+    import bottle
+    bottle.run(host=host, port=port, reloader=reloader, server='paste')
