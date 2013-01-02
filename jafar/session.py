@@ -103,11 +103,21 @@ def init_basic_auth(options):
     on_no_auth = options.get('on_no_auth', False) or default_on_no_auth
     validate_session = options.get('validate_session', False) or default_validate_session
 
-    def simple_session():
+    def simple_session(do_auth_on_fail=True):
         if SESSION_CLASS.test(jafar.get_cookie(SESSION_KEY)):
-            return SESSION_CLASS.load(jafar.get_cookie(SESSION_KEY))
+            session = SESSION_CLASS.load(jafar.get_cookie(SESSION_KEY))
+            if session.data.get('valid', False):
+                return session
+            else:
+                if do_auth_on_fail:
+                    on_no_auth()
+                else:
+                    return None
         else:
-            on_no_auth()
+            if do_auth_on_fail:
+                on_no_auth()
+            else:
+                return None
     
     jafar.get_session = simple_session
 

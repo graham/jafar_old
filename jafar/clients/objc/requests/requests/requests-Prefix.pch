@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'requests' target in the 'requests' project
+//
+
+#ifdef __OBJC__
+    #import <Foundation/Foundation.h>
+#endif
