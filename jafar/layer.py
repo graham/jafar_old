@@ -262,11 +262,11 @@ class JafarAPI(object):
                 import jafar
 
                 d = inner(*args, **kwargs)
-                temp = self.get_file(template)
 
                 if renderer is not None:
-                    return renderer(temp, d)
+                    return renderer(template, d, outkw)
                 else:
+                    temp = self.get_file(template)
                     if base:
                         outkw['content'] = temp % d
                         outkw.update(jafar.cached_data)

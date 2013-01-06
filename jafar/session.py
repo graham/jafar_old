@@ -120,6 +120,10 @@ def init_basic_auth(options):
                 return None
     
     jafar.get_session = simple_session
+    def easy_build(session):
+        client = build_client(session.get('auth_key'), session.get('auth_secret'))
+        return client
+    jafar.get_client = easy_build
 
     ## routes that actually do the auth.
 
