@@ -20,9 +20,11 @@ class JafarAPI(object):
         self.live_version = '0'
         self.api_calls = []
         self.broute = route
+        self.defaults = {}
 
         self.pre_call = []
         self.post_call = []
+
         self.api = self.build_wrapper(version=None)
         self.raw = self.build_wrapper(raw=True)
 
