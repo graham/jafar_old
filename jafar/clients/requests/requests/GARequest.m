@@ -25,6 +25,10 @@
     return self;
 }
 
+- (void)postData:(NSDictionary*)d {
+    post_args = [d copy];
+}
+
 - (void)addDelegate:(id)d withSelector:(SEL)s {
     target_delegate = d;
     target_selector = s;
@@ -44,11 +48,18 @@
 }
 
 -(void)load {
+    NSError *error;
     NSMutableURLRequest *theRequest = [NSMutableURLRequest
                                         requestWithURL:[NSURL URLWithString:url]
                                         cachePolicy:NSURLRequestUseProtocolCachePolicy
                                         timeoutInterval:60.0f * 3];
-    [theRequest setHTTPMethod:requestType];
+    if (post_args) {
+        [theRequest setHTTPBody:[NSJSONSerialization dataWithJSONObject:post_args
+                                                            options:NSJSONWritingPrettyPrinted
+                                                              error:&error]];
+    } else {
+
+    }
     NSLog(@"Conn %@", [[NSURLConnection alloc]
                        initWithRequest:theRequest
                        delegate:self]);

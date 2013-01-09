@@ -160,7 +160,8 @@ class JafarAPI(object):
 
     def wrap(self, wrapped_function, path='/', auth=None, required=[], optional={}, 
              validate={}, version=None, method='GET', errors={}, returns=None, 
-             explicit_pass_in=False, pre_call=None, post_call=None, raw=None):
+             explicit_pass_in=False, pre_call=None, post_call=None, raw=None, **outer_kwargs):
+
         if pre_call == None:
             pre_call = []
         if post_call == None:
@@ -235,11 +236,13 @@ class JafarAPI(object):
                 return nr.args[0]
         return inner
         
-    def page(self, template, dump=None, base=None, renderer=None, **outkw):
-        if dump == None:
-            dump = 'templates/dump.html'
+    def page(self, template, **outkw):
         d = dict(path='/', auth=None, required=[], optional={}, validate={}, version=None, method='GET', errors={}, returns=None, explicit_pass_in=False, raw=True)
         d.update(outkw)
+        d.update(self.defaults)
+        renderer = d.get('renderer', None)
+        base = d.get('base', None)
+
         if d['version'] == None:
             d['version'] = self.live_version
 

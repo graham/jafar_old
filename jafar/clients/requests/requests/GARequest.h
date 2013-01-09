@@ -20,9 +20,12 @@
     SEL target_selector;
     NSMutableData *receivedData;
     int returnType;
+    
+    NSDictionary *post_args;
 }
 
 - (id)initWithURL:(NSString *)s;
+- (void)postData:(NSDictionary*)d;
 - (void)addDelegate:(id)d withSelector:(SEL)s;
 - (void)addDelegate:(id)d withSelector:(SEL)s asString:(BOOL)asStr;
 - (void)addDelegate:(id)d withSelector:(SEL)s asJSON:(BOOL)asJSON;
