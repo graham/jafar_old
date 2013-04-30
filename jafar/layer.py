@@ -231,12 +231,14 @@ class JafarAPI(object):
                     i(path, result, wrapped_function)
                 return result
             except JafarException, e:
-                return json.dumps({'error':e.args})
+                return json.dumps({'error':e.args[0], 'type':'exception'})
             except JafarRaw, nr:
                 return nr.args[0]
+            except AssertionError, e:
+                return json.dumps({'error':e.message, 'type':'failed-assert'})
         return inner
         
-    def page(self, template, **outkw):
+    def page(self, template='', **outkw):
         d = dict(path='/', auth=None, required=[], optional={}, validate={}, version=None, method='GET', errors={}, returns=None, explicit_pass_in=False, raw=True)
         d.update(outkw)
         d.update(self.defaults)

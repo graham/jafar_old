@@ -1,5 +1,8 @@
 import os
-import json
+try:
+    import json
+except:
+    import simplejson as json
 import time
 import uuid
 

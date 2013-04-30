@@ -1,5 +1,8 @@
 from errors import JafarException
-import json
+try:
+    import json
+except:
+    import simplejson as json
 
 def is_int(num):
     """This value should be an integer."""

@@ -83,14 +83,26 @@ def init_base(easy_mode=False):
 
     return jafar.default_api
     
-def jafar_run(host='127.0.0.1', port=8080, config_d={}):
+def jafar_run(host='127.0.0.1', port=8080, config_d={}, cb=None):
     import bottle
-    run(host=host, port=port, reloader=False)
+    try:
+        run(host=host, port=port, reloader=False)
+    finally:
+        if cb:
+            cb()
 
-def jafar_dev(host='127.0.0.1', port=8080, reloader=True, config_d={}):
+def jafar_dev(host='127.0.0.1', port=8080, reloader=True, config_d={}, cb=None):
     import bottle
-    run(host=host, port=port, reloader=reloader)
+    try:
+        run(host=host, port=port, reloader=reloader)
+    finally:
+        if cb:
+            cb()
 
-def jafar_paste(host='127.0.0.1', port=8080, reloader=True):
+def jafar_paste(host='127.0.0.1', port=8080, reloader=True, cb=None):
     import bottle
-    bottle.run(host=host, port=port, reloader=reloader, server='paste')
+    try:
+        bottle.run(host=host, port=port, reloader=reloader, server='paste')
+    finally:
+        if cb:
+            cb()

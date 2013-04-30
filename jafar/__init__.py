@@ -13,6 +13,11 @@ def set_cookie(*args, **kwargs):
 def get_cookie(*args, **kwargs):
     return request.get_cookie(*args, **kwargs)
 
+from errors import JafarException
+
+def throw(words):
+    raise JafarException(words)
+
 ## simple caching of data.
 cached_data = {}
 def get(key):
