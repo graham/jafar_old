@@ -17,14 +17,14 @@ non_json_types = [
 ]
 
 class JafarClient(object):
-    def __init__(self, server, version=0):
+    def __init__(self, server, version=0, data=None):
         self._host = server
         self._version = version
         self._token = None
         self._server = httplib2.Http()
         self._calls = set()
         self._proxies = set()
-        self._data = ''
+        self._data = data or ""
         self._reflect()
     
     def _login(self, uid, password):

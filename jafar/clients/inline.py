@@ -14,8 +14,8 @@ class JafarLocalClient(object):
         self._proxies = set()
         self._data = ''
         self._api_obj = api_obj
-        self._reflect()
         self._version = '0'
+        self._reflect()
     
     def _help(self, key, version=None):
         if version == None:
@@ -48,19 +48,29 @@ class JafarLocalClient(object):
 
         if code == 200:
             self._data = data
-            for method, key, value in data:
+
+            newdata = []
+            root = data[0]
+            for row in data[1:]:
+                newdata.append( dict(zip(root, row)) )
+            data = newdata
+
+            for values in data:
+                method = values['method']
+                key = values['fullpath']
+
                 p = key.split('/', 1)[1].strip('/')
                 if not p:
                     p = '_'
 
-                url = '/%s/%s' % ('0', value['path'].lstrip('/'))
-                def w(url2=url):
+                url = '/%s/%s' % (self._version, values['path'].lstrip('/'))
+                def w(url2, method2):
                     def inner_call(**kwargs):
                         return self._get(url2, kwargs)
                     return inner_call
 
-                c = w()
-                c.func_doc = str(value['func_doc']) + "\nRequired Args: " + str(value['required_args']) + "\nOptional Args:" + str(value['optional_args'])
+                c = w(url, method)
+                c.func_doc = str(values['func_doc']) + "\nRequired Args: " + str(values['required_args']) + "\nOptional Args:" + str(values['optional_args'])
 
                 l = p.split('/')
                 c.func_name = str(l[-1])
